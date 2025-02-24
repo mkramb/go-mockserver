@@ -1,0 +1,15 @@
+version: "3"
+
+tasks:
+  lint:
+    cmds:
+      - golangci-lint run --fast
+
+  compile:
+    cmds:
+      - go build -o go-mockserver ./cmd/go-mockserver
+
+  run:
+    deps: [compile]
+    cmds:
+      - go run ./cmd/go-mockserver

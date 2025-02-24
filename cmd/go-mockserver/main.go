@@ -3,26 +3,26 @@ package main
 import (
 	"go.uber.org/fx"
 
-	"github.com/mkramb/go-mockserver/internal"
+	"github.com/mkramb/go-mockserver/internal/api"
+	"github.com/mkramb/go-mockserver/pkg/config"
 	"github.com/mkramb/go-mockserver/pkg/logger"
 	"github.com/mkramb/go-mockserver/pkg/server"
 )
 
-var cfg = NewEnvConfig()
-
-func Start(lc fx.Lifecycle, server *server.HttpServer, api *internal.ApiServer) {
+func Start(lc fx.Lifecycle, server *server.HttpServer, api *api.ApiServer) {
 	go server.
-		WithHttpRouter(api.CreateHttpRouter()).
+		WithHttpRouter(api.CreateApiRouter()).
 		StartHttp("go-mockserver")
 }
 
 func main() {
 	fx.New(
 		logger.Module,
-		server.NewHttpModule(cfg.HttpPort),
+		config.WithConfig(),
+		server.NewHttpModule(),
 		fx.WithLogger(logger.FxLogger),
-		fx.Provide(internal.NewApiService),
-		fx.Provide(internal.NewApiServer),
+		fx.Provide(api.NewApiService),
+		fx.Provide(api.NewApiServer),
 		fx.Invoke(Start),
 	).Run()
 }

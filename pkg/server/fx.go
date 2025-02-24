@@ -3,14 +3,15 @@ package server
 import (
 	"context"
 
+	"github.com/mkramb/go-mockserver/pkg/config"
 	"github.com/mkramb/go-mockserver/pkg/logger"
 	"go.uber.org/fx"
 )
 
-func NewHttpModule(httpPort int) fx.Option {
-	return fx.Module("transport",
-		fx.Provide(func(lc fx.Lifecycle, log *logger.Logger) *HttpServer {
-			server := NewHttpServer(log, httpPort)
+func NewHttpModule() fx.Option {
+	return fx.Module("server",
+		fx.Provide(func(lc fx.Lifecycle, log *logger.Logger, cfg *config.Config) *HttpServer {
+			server := NewHttpServer(log, cfg.HttpPort)
 
 			lc.Append(fx.Hook{
 				OnStop: func(ctx context.Context) error {

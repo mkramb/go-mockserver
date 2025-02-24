@@ -11,9 +11,9 @@ import (
 )
 
 type HttpServer struct {
-	router *chi.Mux
-	http   *http.Server
-	log    *logger.Logger
+	apiRouter *chi.Mux
+	http      *http.Server
+	log       *logger.Logger
 }
 
 func NewHttpServer(log *logger.Logger, port int) *HttpServer {
@@ -23,21 +23,21 @@ func NewHttpServer(log *logger.Logger, port int) *HttpServer {
 	}
 
 	return &HttpServer{
-		router: nil,
-		http:   &server,
-		log:    log,
+		apiRouter: nil,
+		http:      &server,
+		log:       log,
 	}
 }
 
-func (s *HttpServer) WithHttpRouter(router *chi.Mux) *HttpServer {
-	s.router = router
+func (s *HttpServer) WithHttpRouter(apiRouter *chi.Mux) *HttpServer {
+	s.apiRouter = apiRouter
 
 	return s
 }
 
 func (s *HttpServer) StartHttp(serviceName string) {
 	s.log.Infow("Starting HTTP server", "address", s.http.Addr)
-	s.http.Handler = s.getHttpRouter(health.Component{
+	s.http.Handler = s.CreateHttpRouter(health.Component{
 		Name:    serviceName,
 		Version: "1.0.0",
 	})
@@ -51,7 +51,7 @@ func (s *HttpServer) StartHttp(serviceName string) {
 	}()
 }
 
-func (s *HttpServer) getHttpRouter(serviceInfo health.Component) *chi.Mux {
+func (s *HttpServer) CreateHttpRouter(serviceInfo health.Component) *chi.Mux {
 	router := chi.NewRouter()
 	status, err := health.New(health.WithComponent(serviceInfo))
 
@@ -62,8 +62,8 @@ func (s *HttpServer) getHttpRouter(serviceInfo health.Component) *chi.Mux {
 
 	router.Mount("/health", status.Handler())
 
-	if s.router != nil {
-		router.Mount("/api", s.router)
+	if s.apiRouter != nil {
+		router.Mount("/mockserver", s.apiRouter)
 	}
 
 	return router
